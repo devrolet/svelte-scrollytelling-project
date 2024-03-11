@@ -1,11 +1,11 @@
 <script>
-	// import Scroller from '@sveltejs/svelte-scroller';
+	import ScrollManager from "./components/ScrollManager.svelte";
 </script>
 
 <main>
-	<h1>HELLO WORLD</h1>
+	<ScrollManager />
 </main>
 
 <style>
-
+	/* ADD STYLING FOR MAIN HERE */
 </style>
