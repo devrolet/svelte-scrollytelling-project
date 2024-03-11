@@ -2,10 +2,10 @@
     import Scroller from '@sveltejs/svelte-scroller';
     import CanvasComponent from './CanvasComponent.svelte';
 
-    let currentSelecton = 0;
+    let stepIndex = 0;
 
-    function updateCanvas(section) {
-        currentSelecton = section;
+    function changeStep(newStep) {
+        stepIndex = newStep;
     }
 </script>
 <!-- <Scroller bind:this={scroller} on:section={(event) => updateCanvas(event.detail)}> -->
@@ -13,12 +13,21 @@
     <div class="section">Section 1 Content</div>
     <div class="section">Section 2 Content</div>
     <div class="section">Section 3 Content</div>
+    <div class="section">Section 4 Content</div>
 </Scroller>
 
-<CanvasComponent {currentSelecton} />
+<CanvasComponent {stepIndex} />
 
 <style>
+    
+
     .section {
-		height: 100vh;
-	}
+        position: relative;
+        padding: 20vh 10vw;
+        margin: 40vh 0;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 10; /* ensure text always above the map */
+    }
 </style>
