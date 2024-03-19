@@ -1076,28 +1076,25 @@ var app = (function () {
     const file$2 = "src/components/CanvasComponent.svelte";
 
     function create_fragment$2(ctx) {
-    	let canvas_1;
+    	let div;
 
     	const block = {
     		c: function create() {
-    			canvas_1 = element("canvas");
-    			attr_dev(canvas_1, "id", "mapCanvas");
-    			attr_dev(canvas_1, "class", "svelte-1pchtlu");
-    			add_location(canvas_1, file$2, 55, 0, 1339);
+    			div = element("div");
+    			attr_dev(div, "id", "slippy-map");
+    			add_location(div, file$2, 163, 0, 5124);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, canvas_1, anchor);
-    			/*canvas_1_binding*/ ctx[4](canvas_1);
+    			insert_dev(target, div, anchor);
     		},
     		p: noop,
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(canvas_1);
-    			/*canvas_1_binding*/ ctx[4](null);
+    			if (detaching) detach_dev(div);
     		}
     	};
 
@@ -1115,114 +1112,183 @@ var app = (function () {
     function instance$2($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('CanvasComponent', slots, []);
-    	let { stepIndex } = $$props;
-    	let canvas;
-    	let ctx;
-    	let mapImage;
+    	let zoomLevel;
+    	let minZoom;
+    	let maxZoom;
 
-    	function loadMapImage() {
-    		$$invalidate(3, mapImage = new Image());
-    		$$invalidate(3, mapImage.src = './img/canvas-map-image.png', mapImage);
+    	let loadMap = () => {
+    		zoomLevel = 16.26;
+    		minZoom = 12;
+    		maxZoom = 18;
 
-    		$$invalidate(
-    			3,
-    			mapImage.onload = () => {
-    				ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
-    				console.log(ctx);
-    			},
-    			mapImage
-    		);
-    	}
+    		let map = new maplibregl.Map({
+    				attributionControl: false,
+    				container: 'slippy-map', // container id NB: DO NOT USE 'MAP' (There's another 'map' already on page in dailygraphics)
+    				hash: true,
+    				style: {
+    					version: 8,
+    					glyphs: 'https://dataviz.nbcnews.com/projects/20240308-slippy-sat/assets/{fontstack}/{range}.pbf', //I made this here https://maplibre.org/font-maker/ smth not working tho
+    					sources: {
+    						'raster-tiles': {
+    							type: 'raster',
+    							tiles: [
+    								'https://dataviz.nbcnews.com/projects/20240308-slippy-sat/assets/my-tiles/{z}/{x}/{y}.png'
+    							],
+    							tileSize: 256,
+    							minzoom: minZoom,
+    							maxzoom: maxZoom,
+    							scheme: 'tms'
+    						}
+    					},
+    					layers: [
+    						{
+    							id: 'raster-tiles-layer',
+    							type: 'raster',
+    							source: 'raster-tiles'
+    						}
+    					]
+    				},
+    				center: [-156.684795, 20.893004], //north of location 1
+    				zoom: zoomLevel, // starting zoom
+    				
+    			});
 
-    	function updateCanvas(stepIndex) {
-    		ctx.clearRect(0, 0, canvas.width, canvas.height);
+    		console.log(map);
+    	}; // TODO: Create function for updating map upon scrolling
+    	// let updateMap = () => {}
+    	// map.on('load', () => {
+    	//   //You must first specify the data source
 
-    		switch (stepIndex) {
-    			case 1:
-    				console.log('This is step 1.');
-    				break;
-    			case 2:
-    				console.log('This is step 2.');
-    				break;
-    			case 3:
-    				console.log('This is step 3.');
-    				break;
-    			case 4:
-    				console.log('This is step 4.');
-    				break;
-    			default:
-    				// Default view
-    				console.log('This is the default step.');
-    		}
-    	}
-
+    	//   //(BTW, Am not yet giving up on generating these as .pbf files but haven't cracked it yet and this works for now)
+    	//   map.addSource('kahua', {
+    	//     type: 'geojson',
+    	//     // This can be an external file, but this boundary is a small fry
+    	//     data: {
+    	//       type: 'Feature',
+    	//       geometry: {
+    	//         type: 'Polygon',
+    	//         coordinates: [
+    	//           [
+    	//             [-156.67236578215818, 20.884206614742524],
+    	//             [-156.67264861535222, 20.883898320598163],
+    	//             [-156.67401564235593, 20.883215667116104],
+    	//             [-156.67469915585792, 20.882731201471714],
+    	//             [-156.67538266935975, 20.88251098929858],
+    	//             [-156.67641972432813, 20.88268715906274],
+    	//             [-156.67797530678064, 20.88196045745302],
+    	//             [-156.6752648222043, 20.878745311168345],
+    	//             [-156.67300215681874, 20.880176720411413],
+    	//             [-156.67024453338001, 20.88196045745302],
+    	//             [-156.67236578215818, 20.884206614742524]
+    	//           ]
+    	//         ]
+    	//       }
+    	//     }
+    	//   })
+    	//   //Another example of adding a data source
+    	//   map.addSource('labels', {
+    	//     type: 'geojson',
+    	//     data: {
+    	//       type: 'FeatureCollection',
+    	//       features: [
+    	//         {
+    	//           type: 'Feature',
+    	//           properties: { id: 'note1', name: 'Kahua label' },
+    	//           geometry: {
+    	//             type: 'Point',
+    	//             coordinates: [-156.67814968373023, 20.883540023966397]
+    	//           }
+    	//         }
+    	//       ]
+    	//     }
+    	//   })
+    	//   //Now to get it on the map, add it as a layer
+    	//   map.addLayer({
+    	//     id: 'kahua',
+    	//     type: 'fill',
+    	//     source: 'kahua',
+    	//     layout: {
+    	//       visibility: 'none'
+    	//     },
+    	//     paint: {
+    	//       'fill-color': '#ffffff',
+    	//       'fill-opacity': 0.8
+    	//     }
+    	//   })
+    	//   //Another layer added
+    	//   map.addLayer({
+    	//     id: 'labels',
+    	//     type: 'symbol',
+    	//     source: 'labels',
+    	//     layout: {
+    	//       'text-font': ['FoundersGroteskCond'],
+    	//       'text-field': ['get', 'name'],
+    	//       'text-size': 40,
+    	//       visibility: 'none'
+    	//     },
+    	//     paint: {
+    	//       'text-color': '#FFFFFF',
+    	//       'text-halo-blur': 2,
+    	//       'text-halo-width': 2,
+    	//       'text-halo-color': 'rgb(60, 60, 60, 0.8)'
+    	//     }
+    	//   })
+    	// })
+    	// // disable map zoom
+    	// map.scrollZoom.disable()
+    	// // disable map pan
+    	// map.dragPan.disable()
+    	// //These are made up points and zooms to use in the event handler example below
+    	// const destinations = {
+    	//   loc1: {
+    	//     center: [-156.685234, 20.887898], //boats to the left of the shore
+    	//     zoom: 16.26
+    	//   },
+    	//   loc2: {
+    	//     center: [-156.681685, 20.883313], //zoom out to show the shoreline
+    	//     zoom: 15.13
+    	//   },
+    	//   loc3: {
+    	//     center: [-156.674698, 20.881803], // show teh white box //
+    	//     zoom: 15.75
+    	//   }
+    	// }
     	onMount(() => {
-    		$$invalidate(0, canvas = document.getElementById('mapCanvas'));
-    		$$invalidate(0, canvas.width = window.innerWidth, canvas);
-    		$$invalidate(0, canvas.height = window.innerHeight, canvas);
-    		$$invalidate(2, ctx = canvas.getContext("2d"));
-    		loadMapImage();
+    		loadMap();
     	});
 
-    	$$self.$$.on_mount.push(function () {
-    		if (stepIndex === undefined && !('stepIndex' in $$props || $$self.$$.bound[$$self.$$.props['stepIndex']])) {
-    			console_1$1.warn("<CanvasComponent> was created without expected prop 'stepIndex'");
-    		}
-    	});
-
-    	const writable_props = ['stepIndex'];
+    	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1$1.warn(`<CanvasComponent> was created with unknown prop '${key}'`);
     	});
 
-    	function canvas_1_binding($$value) {
-    		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
-    			canvas = $$value;
-    			$$invalidate(0, canvas);
-    		});
-    	}
-
-    	$$self.$$set = $$props => {
-    		if ('stepIndex' in $$props) $$invalidate(1, stepIndex = $$props.stepIndex);
-    	};
-
     	$$self.$capture_state = () => ({
     		onMount,
-    		stepIndex,
-    		canvas,
-    		ctx,
-    		mapImage,
-    		loadMapImage,
-    		updateCanvas
+    		zoomLevel,
+    		minZoom,
+    		maxZoom,
+    		loadMap
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ('stepIndex' in $$props) $$invalidate(1, stepIndex = $$props.stepIndex);
-    		if ('canvas' in $$props) $$invalidate(0, canvas = $$props.canvas);
-    		if ('ctx' in $$props) $$invalidate(2, ctx = $$props.ctx);
-    		if ('mapImage' in $$props) $$invalidate(3, mapImage = $$props.mapImage);
+    		if ('zoomLevel' in $$props) zoomLevel = $$props.zoomLevel;
+    		if ('minZoom' in $$props) minZoom = $$props.minZoom;
+    		if ('maxZoom' in $$props) maxZoom = $$props.maxZoom;
+    		if ('loadMap' in $$props) loadMap = $$props.loadMap;
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	$$self.$$.update = () => {
-    		if ($$self.$$.dirty & /*ctx, mapImage, stepIndex*/ 14) {
-    			if (ctx && mapImage) {
-    				updateCanvas(stepIndex);
-    			}
-    		}
-    	};
-
-    	return [canvas, stepIndex, ctx, mapImage, canvas_1_binding];
+    	return [];
     }
 
     class CanvasComponent extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$2, create_fragment$2, safe_not_equal, { stepIndex: 1 });
+    		init(this, options, instance$2, create_fragment$2, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
@@ -1230,14 +1296,6 @@ var app = (function () {
     			options,
     			id: create_fragment$2.name
     		});
-    	}
-
-    	get stepIndex() {
-    		throw new Error("<CanvasComponent>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set stepIndex(value) {
-    		throw new Error("<CanvasComponent>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
 
@@ -1421,7 +1479,7 @@ var app = (function () {
     			t61 = space();
     			p19 = element("p");
     			p19.textContent = "Nullam ultricies lacus sem, eu venenatis magna aliquam a. Donec vel justo tortor. Aenean venenatis at metus et auctor. Nam nulla sem, viverra quis fringilla in, luctus non arcu. Morbi gravida enim odio, a porttitor arcu sollicitudin a. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In vitae ullamcorper magna. Duis vel risus vel augue placerat rutrum. Cras nec vulputate elit. Ut dignissim condimentum placerat. Aenean felis dui, porttitor id rhoncus ac, interdum non ante.";
-    			attr_dev(h10, "class", "svelte-17j2hs");
+    			attr_dev(h10, "class", "svelte-ifjppc");
     			add_location(h10, file$1, 35, 16, 776);
     			add_location(p0, file$1, 36, 16, 819);
     			add_location(h20, file$1, 38, 16, 1403);
@@ -1430,9 +1488,9 @@ var app = (function () {
     			add_location(h30, file$1, 43, 16, 3191);
     			add_location(p3, file$1, 44, 16, 3232);
     			add_location(p4, file$1, 46, 16, 4088);
-    			attr_dev(section0, "class", "svelte-17j2hs");
+    			attr_dev(section0, "class", "svelte-ifjppc");
     			add_location(section0, file$1, 34, 12, 750);
-    			attr_dev(h11, "class", "svelte-17j2hs");
+    			attr_dev(h11, "class", "svelte-ifjppc");
     			add_location(h11, file$1, 50, 16, 4672);
     			add_location(p5, file$1, 51, 16, 4715);
     			add_location(h21, file$1, 53, 16, 5299);
@@ -1441,9 +1499,9 @@ var app = (function () {
     			add_location(h31, file$1, 58, 16, 7087);
     			add_location(p8, file$1, 59, 16, 7128);
     			add_location(p9, file$1, 61, 16, 7984);
-    			attr_dev(section1, "class", "svelte-17j2hs");
+    			attr_dev(section1, "class", "svelte-ifjppc");
     			add_location(section1, file$1, 49, 12, 4646);
-    			attr_dev(h12, "class", "svelte-17j2hs");
+    			attr_dev(h12, "class", "svelte-ifjppc");
     			add_location(h12, file$1, 65, 16, 8568);
     			add_location(p10, file$1, 66, 16, 8611);
     			add_location(h22, file$1, 68, 16, 9195);
@@ -1452,9 +1510,9 @@ var app = (function () {
     			add_location(h32, file$1, 73, 16, 10983);
     			add_location(p13, file$1, 74, 16, 11024);
     			add_location(p14, file$1, 76, 16, 11880);
-    			attr_dev(section2, "class", "svelte-17j2hs");
+    			attr_dev(section2, "class", "svelte-ifjppc");
     			add_location(section2, file$1, 64, 12, 8542);
-    			attr_dev(h13, "class", "svelte-17j2hs");
+    			attr_dev(h13, "class", "svelte-ifjppc");
     			add_location(h13, file$1, 80, 16, 12464);
     			add_location(p15, file$1, 81, 16, 12507);
     			add_location(h23, file$1, 83, 16, 13091);
@@ -1463,9 +1521,9 @@ var app = (function () {
     			add_location(h33, file$1, 88, 16, 14879);
     			add_location(p18, file$1, 89, 16, 14920);
     			add_location(p19, file$1, 91, 16, 15776);
-    			attr_dev(section3, "class", "svelte-17j2hs");
+    			attr_dev(section3, "class", "svelte-ifjppc");
     			add_location(section3, file$1, 79, 12, 12438);
-    			attr_dev(div0, "class", "scroll-container svelte-17j2hs");
+    			attr_dev(div0, "class", "scroll-container svelte-ifjppc");
     			add_location(div0, file$1, 33, 8, 707);
     			attr_dev(div1, "slot", "foreground");
     			add_location(div1, file$1, 32, 4, 675);
@@ -1563,11 +1621,7 @@ var app = (function () {
     	let div;
     	let canvascomponent;
     	let current;
-
-    	canvascomponent = new CanvasComponent({
-    			props: { stepIndex: /*stepIndex*/ ctx[0] },
-    			$$inline: true
-    		});
+    	canvascomponent = new CanvasComponent({ $$inline: true });
 
     	const block = {
     		c: function create() {
@@ -1581,11 +1635,7 @@ var app = (function () {
     			mount_component(canvascomponent, div, null);
     			current = true;
     		},
-    		p: function update(ctx, dirty) {
-    			const canvascomponent_changes = {};
-    			if (dirty & /*stepIndex*/ 1) canvascomponent_changes.stepIndex = /*stepIndex*/ ctx[0];
-    			canvascomponent.$set(canvascomponent_changes);
-    		},
+    		p: noop,
     		i: function intro(local) {
     			if (current) return;
     			transition_in(canvascomponent.$$.fragment, local);
@@ -1617,9 +1667,9 @@ var app = (function () {
     	let current;
 
     	let scroller_1_props = {
-    		top: /*top*/ ctx[2],
-    		threshold: /*threshold*/ ctx[3],
-    		bottom: /*bottom*/ ctx[4],
+    		top: /*top*/ ctx[1],
+    		threshold: /*threshold*/ ctx[2],
+    		bottom: /*bottom*/ ctx[3],
     		$$slots: {
     			background: [create_background_slot],
     			foreground: [create_foreground_slot]
@@ -1628,8 +1678,8 @@ var app = (function () {
     	};
 
     	scroller_1 = new Scroller({ props: scroller_1_props, $$inline: true });
-    	/*scroller_1_binding*/ ctx[5](scroller_1);
-    	scroller_1.$on("section", /*section_handler*/ ctx[6]);
+    	/*scroller_1_binding*/ ctx[4](scroller_1);
+    	scroller_1.$on("section", /*section_handler*/ ctx[5]);
 
     	const block = {
     		c: function create() {
@@ -1645,7 +1695,7 @@ var app = (function () {
     		p: function update(ctx, [dirty]) {
     			const scroller_1_changes = {};
 
-    			if (dirty & /*$$scope, stepIndex*/ 257) {
+    			if (dirty & /*$$scope*/ 256) {
     				scroller_1_changes.$$scope = { dirty, ctx };
     			}
 
@@ -1661,7 +1711,7 @@ var app = (function () {
     			current = false;
     		},
     		d: function destroy(detaching) {
-    			/*scroller_1_binding*/ ctx[5](null);
+    			/*scroller_1_binding*/ ctx[4](null);
     			destroy_component(scroller_1, detaching);
     		}
     	};
@@ -1687,7 +1737,7 @@ var app = (function () {
     	let scroller;
 
     	function changeStep(newStep) {
-    		$$invalidate(0, stepIndex = newStep);
+    		stepIndex = newStep;
     		console.log(stepIndex);
     	}
 
@@ -1700,7 +1750,7 @@ var app = (function () {
     	function scroller_1_binding($$value) {
     		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
     			scroller = $$value;
-    			$$invalidate(1, scroller);
+    			$$invalidate(0, scroller);
     		});
     	}
 
@@ -1718,26 +1768,18 @@ var app = (function () {
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ('top' in $$props) $$invalidate(2, top = $$props.top);
-    		if ('threshold' in $$props) $$invalidate(3, threshold = $$props.threshold);
-    		if ('bottom' in $$props) $$invalidate(4, bottom = $$props.bottom);
-    		if ('stepIndex' in $$props) $$invalidate(0, stepIndex = $$props.stepIndex);
-    		if ('scroller' in $$props) $$invalidate(1, scroller = $$props.scroller);
+    		if ('top' in $$props) $$invalidate(1, top = $$props.top);
+    		if ('threshold' in $$props) $$invalidate(2, threshold = $$props.threshold);
+    		if ('bottom' in $$props) $$invalidate(3, bottom = $$props.bottom);
+    		if ('stepIndex' in $$props) stepIndex = $$props.stepIndex;
+    		if ('scroller' in $$props) $$invalidate(0, scroller = $$props.scroller);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [
-    		stepIndex,
-    		scroller,
-    		top,
-    		threshold,
-    		bottom,
-    		scroller_1_binding,
-    		section_handler
-    	];
+    	return [scroller, top, threshold, bottom, scroller_1_binding, section_handler];
     }
 
     class ScrollManager extends SvelteComponentDev {

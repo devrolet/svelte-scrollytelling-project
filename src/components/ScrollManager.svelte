@@ -94,7 +94,7 @@
         </div>
     </div>
     <div slot="background">
-        <CanvasComponent {stepIndex} />
+        <CanvasComponent />
     </div>
     
 </Scroller>
@@ -120,6 +120,4 @@
         align-items: center;
         background: rgba(0, 0, 0, 0.5)
     }
-
-
 </style>
