@@ -6,9 +6,8 @@
 	/* ADD STYLING FOR MAIN HERE */
 	main {
 		display: flex;
-		flex-direction: column;
+		flex-direction: row;
 		align-items: center;
-		margin-top: 20px;
 	}
 </style>
 <main>
